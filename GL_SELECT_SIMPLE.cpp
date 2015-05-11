@@ -84,17 +84,25 @@ void select(GLint mouseX, GLint mouseY)
 	GLuint m_select_buf[MAX_HITS] = { 0, };
 	static unsigned int hits;
 
+	// get viewport matrix.
 	glGetIntegerv(GL_VIEWPORT, m_viewport);
 
+	// set selection buffer.
 	glSelectBuffer(MAXHITS, m_select_buf);
+	// switch to GL_SELECT mode.
 	glRenderMode(GL_SELECT);
 
 	glInitNames();
 	glPushName(0);
 
 	glMatrixMode(GL_PROJECTION);
+	// Save the Projection Matrix on GL_RENDER mode.
 	glPushMatrix();
+
+	// Without setting gluPickMatrix, Set Projection Matrix and Model View Matrix as same as reshape() function.
 	glLoadIdentity();
+
+	// Set Pick Matrix.
 	gluPickMatrix(mouseX, (double)(m_viewport[3] - mouseY), SELECTION_AREA_SIZE, SELECTION_AREA_SIZE, m_viewport);
 	gluPerspective(60.0, 1.0, 1.0, 30.0);
 	
@@ -103,13 +111,16 @@ void select(GLint mouseX, GLint mouseY)
 
 	glLoadIdentity();
 	gluLookAt(10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0);
-	render(GL_SELECT);
 
+	// render objects on GL_SELECT mode
+	render(GL_SELECT);
 	glPopMatrix();
 
 	glMatrixMode(GL_PROJECTION);
+	// Recover original projection matrix.
 	glPopMatrix();
 
+	// when render mode switch from GL_SELECT to GL_RENDER, glRenderMode() function return hits count and fill up the selection buffer.
 	hits = glRenderMode(GL_RENDER);
 	if (hits > 0) {
 		processHit(hits, m_select_buf);
